@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"sync"
+
 	"github.com/ananto30/gache/pkg/cache"
 	"github.com/ananto30/gache/pkg/store"
 )
@@ -15,8 +18,7 @@ func add(x User) (User, error) {
 }
 
 func main() {
-	println("Hello, world!")
-	memoryStore := store.MemoryStore[User, User]{Map: map[User]User{}}
+	memoryStore := store.MemoryStore[User, User]{Map: sync.Map{}}
 
 	// cache wrapper
 	addCached := cache.Cached(memoryStore, add)
@@ -24,7 +26,8 @@ func main() {
 	user := User{Name: "test", Age: 10}
 	user2 := User{Name: "test", Age: 10}
 
-	addCached(user)
-	addCached(user2)
-	addCached(user2)
+	fmt.Println(addCached(user))
+	fmt.Println(addCached(user2))
+	fmt.Println(addCached(user))
+	fmt.Println(addCached(user2))
 }
