@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/ananto30/gache/pkg/cache"
+	"github.com/ananto30/gache/pkg/retry"
 	"github.com/ananto30/gache/pkg/store"
 )
 
@@ -15,6 +17,10 @@ type User struct {
 
 func add(x User) (User, error) {
 	return x, nil
+}
+
+func fail(x User) (User, error) {
+	return x, fmt.Errorf("failed")
 }
 
 func main() {
@@ -30,4 +36,6 @@ func main() {
 	fmt.Println(addCached(user2))
 	fmt.Println(addCached(user))
 	fmt.Println(addCached(user2))
+
+	fmt.Println(retry.Func(context.Background(), fail).Do(user))
 }
