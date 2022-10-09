@@ -19,7 +19,7 @@ func add(x User) (User, error) {
 	return x, nil
 }
 
-func fail(x User) (User, error) {
+func fail(ctx context.Context, x User) (User, error) {
 	return x, fmt.Errorf("failed")
 }
 
@@ -37,5 +37,5 @@ func main() {
 	fmt.Println(addCached(user))
 	fmt.Println(addCached(user2))
 
-	fmt.Println(retry.Func(context.Background(), fail).Do(user))
+	fmt.Println(retry.Func(fail).Do(user))
 }

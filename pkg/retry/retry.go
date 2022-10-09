@@ -9,24 +9,30 @@ import (
 	"time"
 )
 
-type RetryConfig[T, R any] struct {
+type FuncType[T comparable, R any] func(context.Context, T) (R, error)
+
+type RetryConfig[T comparable, R any] struct {
 	attempts        int
 	delay           time.Duration
 	retryAbleErrors []error
 
 	ctx context.Context
-	fn  func(T) (R, error)
+	fn  FuncType[T, R]
 }
 
-func Func[T, R any](ctx context.Context, fn func(T) (R, error)) *RetryConfig[T, R] {
+func Func[T comparable, R any](fn FuncType[T, R]) *RetryConfig[T, R] {
 	return &RetryConfig[T, R]{
 		attempts:        3,
 		delay:           1 * time.Second,
 		retryAbleErrors: []error{},
 
-		ctx: ctx,
-		fn:  fn,
+		fn: fn,
 	}
+}
+
+func (r *RetryConfig[T, R]) Ctx(ctx context.Context) *RetryConfig[T, R] {
+	r.ctx = ctx
+	return r
 }
 
 func (r *RetryConfig[T, R]) Attempts(attempts int) *RetryConfig[T, R] {
@@ -48,7 +54,7 @@ func (r *RetryConfig[T, R]) Do(args T) (R, error) {
 	var err error
 	var result R
 	for i := 0; i < r.attempts; i++ {
-		result, err = r.fn(args)
+		result, err = r.fn(r.ctx, args)
 		if err == nil {
 			return result, nil
 		}
